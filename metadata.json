@@ -1,0 +1,5 @@
+{
+  "name": "Offline To-Do List",
+  "description": "A simple and efficient to-do list application that works offline using local storage.",
+  "requestFramePermissions": []
+}
