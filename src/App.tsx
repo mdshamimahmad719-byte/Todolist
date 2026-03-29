@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useMemo, FormEvent } from 'react';
-import { Plus, Trash2, CheckCircle2, Circle, ListTodo, Filter, Calendar } from 'lucide-react';
+import { useState, useEffect, useMemo, FormEvent, useRef, ChangeEvent } from 'react';
+import { Plus, Trash2, CheckCircle2, Circle, ListTodo, Filter, Calendar, Camera, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface Todo {
@@ -32,11 +32,39 @@ export default function App() {
 
   const [inputValue, setInputValue] = useState('');
   const [filter, setFilter] = useState<FilterType>('all');
+  const [profileImage, setProfileImage] = useState<string | null>(() => {
+    return localStorage.getItem('offline-todo-profile-image');
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Save to localStorage whenever todos change
   useEffect(() => {
     localStorage.setItem('offline-todos', JSON.stringify(todos));
   }, [todos]);
+
+  // Save profile image to localStorage
+  useEffect(() => {
+    if (profileImage) {
+      localStorage.setItem('offline-todo-profile-image', profileImage);
+    } else {
+      localStorage.removeItem('offline-todo-profile-image');
+    }
+  }, [profileImage]);
+
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
 
   const addTodo = (e?: FormEvent) => {
     e?.preventDefault();
@@ -89,18 +117,57 @@ export default function App() {
       <div className="max-w-2xl mx-auto px-4 py-12 md:py-20">
         {/* Header */}
         <header className="mb-10 text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center justify-center p-3 bg-blue-600 text-white rounded-2xl mb-4 shadow-lg shadow-blue-200"
-          >
-            <ListTodo size={32} />
-          </motion.div>
+          <div className="relative inline-block group">
+            <motion.div 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={triggerFileInput}
+              className="relative w-24 h-24 mx-auto cursor-pointer overflow-hidden rounded-3xl bg-blue-600 text-white shadow-lg shadow-blue-200 flex items-center justify-center group"
+            >
+              {profileImage ? (
+                <img 
+                  src={profileImage} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <ListTodo size={40} />
+              )}
+              
+              {/* Hover Overlay */}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <Camera size={24} className="text-white" />
+              </div>
+            </motion.div>
+            
+            <input 
+              type="file" 
+              ref={fileInputRef}
+              onChange={handleImageUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            
+            {profileImage && (
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileImage(null);
+                }}
+                className="absolute -top-2 -right-2 bg-white text-red-500 p-1.5 rounded-full shadow-md border border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Remove photo"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
+          
           <motion.h1 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl font-bold tracking-tight text-gray-900 mb-2"
+            className="text-4xl font-bold tracking-tight text-gray-900 mt-4 mb-2"
           >
             My Tasks
           </motion.h1>
