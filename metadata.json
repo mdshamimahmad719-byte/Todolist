@@ -1,5 +1,5 @@
 {
-  "name": "Offline To-Do List",
-  "description": "A simple and efficient to-do list application that works offline using local storage.",
+  "name": "TaskFlow Pro",
+  "description": "A high-end, minimalist iOS 18 style to-do list with glassmorphism, focus timer, and smart input.",
   "requestFramePermissions": []
 }
